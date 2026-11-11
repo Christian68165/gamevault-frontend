@@ -69,7 +69,7 @@ export default function GamesSection() {
         />
         
         {/* Le pasamos la URL de la imagen del juego seleccionado al visor 3D */}
-        <GameViewer3D coverUrl={selectedGame?.image_url} />
+        <GameViewer3D coverUrl={selectedGame?.image_url || null} />
       </div>
       
       {/* Le pasamos la función onSelectGame a la grilla para detectar clics */}
