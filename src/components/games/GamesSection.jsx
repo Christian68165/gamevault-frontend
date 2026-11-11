@@ -58,7 +58,7 @@ export default function GamesSection() {
           onRetryOptions={loadOptions}
           onCreated={loadGames}
         />
-        <GameViewer3D />
+        <GameViewer3D coverUrl={games.length > 0 ? games[0].image_url : null} />
       </div>
       <GameGrid games={games} loading={gamesLoading} error={gamesError} onRetry={loadGames} />
     </div>
