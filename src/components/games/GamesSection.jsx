@@ -9,6 +9,9 @@ export default function GamesSection() {
   const [games, setGames] = useState([])
   const [gamesLoading, setGamesLoading] = useState(true)
   const [gamesError, setGamesError] = useState('')
+  
+  // NUEVO: Estado para guardar el juego seleccionado
+  const [selectedGame, setSelectedGame] = useState(null)
 
   const [platforms, setPlatforms] = useState([])
   const [genres, setGenres] = useState([])
@@ -19,13 +22,18 @@ export default function GamesSection() {
     setGamesLoading(true)
     setGamesError('')
     try {
-      setGames(await api.getGames())
+      const data = await api.getGames()
+      setGames(data)
+      // Si no hay un juego seleccionado aún, seleccionamos el primero por defecto
+      if (data.length > 0 && !selectedGame) {
+        setSelectedGame(data[0])
+      }
     } catch (err) {
       setGamesError(err.message)
     } finally {
       setGamesLoading(false)
     }
-  }, [])
+  }, [selectedGame])
 
   const loadOptions = useCallback(async () => {
     setOptionsLoading(true)
@@ -49,6 +57,7 @@ export default function GamesSection() {
   return (
     <div className="space-y-6">
       <SectionHeader title="Juegos" subtitle="Administra el catálogo de videojuegos de la bóveda." />
+      
       <div className="grid gap-6 lg:grid-cols-[400px_1fr]">
         <GameForm
           platforms={platforms}
@@ -58,9 +67,19 @@ export default function GamesSection() {
           onRetryOptions={loadOptions}
           onCreated={loadGames}
         />
-        <GameViewer3D coverUrl={games.length > 0 ? games[0].image_url : null} />
+        
+        {/* Le pasamos la URL de la imagen del juego seleccionado al visor 3D */}
+        <GameViewer3D coverUrl={selectedGame?.image_url} />
       </div>
-      <GameGrid games={games} loading={gamesLoading} error={gamesError} onRetry={loadGames} />
+      
+      {/* Le pasamos la función onSelectGame a la grilla para detectar clics */}
+      <GameGrid 
+        games={games} 
+        loading={gamesLoading} 
+        error={gamesError} 
+        onRetry={loadGames} 
+        onSelectGame={setSelectedGame} 
+      />
     </div>
   )
 }
