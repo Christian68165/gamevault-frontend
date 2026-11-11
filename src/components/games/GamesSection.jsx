@@ -22,7 +22,7 @@ export default function GamesSection() {
     setGamesError('')
     try {
       const data = await api.getGames()
-      const safeData = data || [] // Protección por si la API devuelve null
+      const safeData = data || [] 
       setGames(safeData)
       
       if (safeData.length > 0 && !selectedGame) {
@@ -40,8 +40,8 @@ export default function GamesSection() {
     setOptionsError('')
     try {
       const [platformsData, genresData] = await Promise.all([api.getPlatforms(), api.getGenres()])
-      setPlatforms(platformsData || []) // Protección
-      setGenres(genresData || [])       // Protección
+      setPlatforms(platformsData || []) 
+      setGenres(genresData || [])       
     } catch (err) {
       setOptionsError(`No se pudieron cargar plataformas/géneros. ${err.message}`)
     } finally {
@@ -68,7 +68,14 @@ export default function GamesSection() {
           onCreated={loadGames}
         />
         
-        <GameViewer3D coverUrl={selectedGame?.image_url || null} />
+        {/* AQUÍ ESTÁ EL CAMBIO: Solo renderiza el 3D si hay una imagen válida */}
+        {selectedGame?.image_url ? (
+          <GameViewer3D coverUrl={selectedGame.image_url} />
+        ) : (
+          <div className="flex items-center justify-center h-72 bg-slate-900 rounded-xl text-slate-400 border border-slate-700">
+            Selecciona un juego con imagen para ver el visor 3D
+          </div>
+        )}
       </div>
       
       <GameGrid 
