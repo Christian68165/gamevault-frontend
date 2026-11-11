@@ -10,7 +10,6 @@ export default function GamesSection() {
   const [gamesLoading, setGamesLoading] = useState(true)
   const [gamesError, setGamesError] = useState('')
   
-  // NUEVO: Estado para guardar el juego seleccionado
   const [selectedGame, setSelectedGame] = useState(null)
 
   const [platforms, setPlatforms] = useState([])
@@ -23,10 +22,11 @@ export default function GamesSection() {
     setGamesError('')
     try {
       const data = await api.getGames()
-      setGames(data)
-      // Si no hay un juego seleccionado aún, seleccionamos el primero por defecto
-      if (data.length > 0 && !selectedGame) {
-        setSelectedGame(data[0])
+      const safeData = data || [] // Protección por si la API devuelve null
+      setGames(safeData)
+      
+      if (safeData.length > 0 && !selectedGame) {
+        setSelectedGame(safeData[0])
       }
     } catch (err) {
       setGamesError(err.message)
@@ -40,8 +40,8 @@ export default function GamesSection() {
     setOptionsError('')
     try {
       const [platformsData, genresData] = await Promise.all([api.getPlatforms(), api.getGenres()])
-      setPlatforms(platformsData)
-      setGenres(genresData)
+      setPlatforms(platformsData || []) // Protección
+      setGenres(genresData || [])       // Protección
     } catch (err) {
       setOptionsError(`No se pudieron cargar plataformas/géneros. ${err.message}`)
     } finally {
@@ -68,11 +68,9 @@ export default function GamesSection() {
           onCreated={loadGames}
         />
         
-        {/* Le pasamos la URL de la imagen del juego seleccionado al visor 3D */}
         <GameViewer3D coverUrl={selectedGame?.image_url || null} />
       </div>
       
-      {/* Le pasamos la función onSelectGame a la grilla para detectar clics */}
       <GameGrid 
         games={games} 
         loading={gamesLoading} 

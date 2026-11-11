@@ -59,7 +59,8 @@ export default function GameForm({ platforms, genres, optionsLoading, optionsErr
         <Field label="Plataforma">
           <select name="platform_id" value={form.platform_id} onChange={handleChange} required disabled={optionsLoading} className={inputClass}>
             <option value="">{selectPlaceholder('una plataforma')}</option>
-            {platforms.map((p) => (
+            {/* Aquí agregamos el signo de interrogación: platforms?.map */}
+            {platforms?.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.name} ({p.company})
               </option>
@@ -69,7 +70,8 @@ export default function GameForm({ platforms, genres, optionsLoading, optionsErr
         <Field label="Género">
           <select name="genre_id" value={form.genre_id} onChange={handleChange} required disabled={optionsLoading} className={inputClass}>
             <option value="">{selectPlaceholder('un género')}</option>
-            {genres.map((g) => (
+            {/* Aquí también: genres?.map */}
+            {genres?.map((g) => (
               <option key={g.id} value={g.id}>
                 {g.name}
               </option>
