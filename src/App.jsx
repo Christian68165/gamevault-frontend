@@ -10,8 +10,9 @@ export default function App() {
   // --- ESTADOS DEL CARRITO ---
   const [isCartOpen, setIsCartOpen] = useState(false)
   const [cartItems, setCartItems] = useState([])
+  const [isProcessing, setIsProcessing] = useState(false) // NUEVO ESTADO
 
-  // --- ESTADO DEL MODO ADMIN (NUEVO) ---
+  // --- ESTADO DEL MODO ADMIN ---
   const [isAdmin, setIsAdmin] = useState(false)
 
   const activarAdmin = () => {
@@ -38,6 +39,38 @@ export default function App() {
 
   const total = cartItems.reduce((acc, item) => acc + item.price, 0)
 
+  // --- NUEVA FUNCIÓN DE CHECKOUT REAL ---
+  const handleCheckout = async () => {
+    if (cartItems.length === 0) return;
+    setIsProcessing(true);
+    
+    try {
+      // Procesamos cada juego en el carrito uno por uno
+      for (const item of cartItems) {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/checkout/${item.id}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        
+        if (!res.ok) {
+          const errorData = await res.json();
+          throw new Error(errorData.detail || "Error procesando la compra");
+        }
+      }
+      
+      // Si todo sale bien:
+      alert("✅ ¡Compra exitosa! El stock ha sido actualizado en Supabase y notificado a Slack.");
+      setCartItems([]); // Vaciar carrito
+      setIsCartOpen(false); // Cerrar panel
+      window.location.reload(); // Recargar la página para ver el nuevo stock real
+      
+    } catch (error) {
+      alert(`❌ Error: ${error.message}`);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_rgba(79,70,229,0.18),_transparent_60%)] bg-slate-950 text-white md:flex">
       
@@ -50,7 +83,7 @@ export default function App() {
         {/* HEADER SUPERIOR */}
         <header className="flex justify-end items-center gap-4 mb-6">
           
-          {/* BOTÓN DE ADMIN (NUEVO) */}
+          {/* BOTÓN DE ADMIN */}
           <button 
             onClick={activarAdmin}
             className={`px-4 py-3 rounded-xl font-bold text-sm border transition-all ${
@@ -59,7 +92,7 @@ export default function App() {
                 : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white'
             }`}
           >
-            {isAdmin ? '👑 Modo Admin Activo' : '⚙️ Acceso Admin'}
+            {isAdmin ? 'Modo Admin Activo' : '⚙️ Acceso Admin'}
           </button>
 
           <button 
@@ -75,7 +108,7 @@ export default function App() {
           </button>
         </header>
 
-        {/* SECCIONES (Le pasamos addToCart e isAdmin) */}
+        {/* SECCIONES */}
         {section === 'games' && <GamesSection addToCart={addToCart} isAdmin={isAdmin} />}
         {section === 'platforms' && <PlatformsSection />}
         {section === 'genres' && <GenresSection />}
@@ -117,18 +150,14 @@ export default function App() {
             <span className="text-slate-400">Total:</span>
             <span className="text-green-400 text-2xl">${total.toFixed(2)}</span>
           </div>
+          
+          {/* BOTÓN DE COMPRA CONECTADO AL BACKEND */}
           <button 
-            onClick={() => {
-              if(cartItems.length > 0) {
-                alert("Simulando pasarela de pago... ¡Compra exitosa!");
-                setCartItems([]);
-                setIsCartOpen(false);
-              }
-            }}
-            disabled={cartItems.length === 0}
+            onClick={handleCheckout}
+            disabled={cartItems.length === 0 || isProcessing}
             className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-4 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-indigo-500/30"
           >
-            Finalizar Compra
+            {isProcessing ? 'Procesando pago...' : 'Finalizar Compra'}
           </button>
         </div>
       </div>
