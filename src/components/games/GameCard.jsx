@@ -1,12 +1,15 @@
 import { useState } from 'react'
 
-export default function GameCard({ game }) {
+export default function GameCard({ game, onClick, onBuy }) {
   const [imgError, setImgError] = useState(false)
   const showImage = game.image_url && !imgError
   const outOfStock = game.stock <= 0
 
   return (
-    <article className="group overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 transition hover:-translate-y-1 hover:border-indigo-500/60 hover:shadow-xl hover:shadow-indigo-900/40">
+    <article 
+      onClick={onClick}
+      className="group flex flex-col cursor-pointer overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 transition hover:-translate-y-1 hover:border-indigo-500/60 hover:shadow-xl hover:shadow-indigo-900/40"
+    >
       <div className="relative aspect-[3/4] overflow-hidden bg-gradient-to-br from-indigo-900 to-fuchsia-900">
         {showImage ? (
           <img
@@ -33,10 +36,12 @@ export default function GameCard({ game }) {
           {outOfStock ? 'Agotado' : `Stock: ${game.stock}`}
         </span>
       </div>
-      <div className="space-y-3 p-4">
+      
+      <div className="flex flex-col flex-grow space-y-3 p-4">
         <h3 className="line-clamp-2 font-bold text-white" title={game.title}>
           {game.title}
         </h3>
+        
         <div className="flex flex-wrap gap-2 text-xs">
           <span className="rounded-full bg-indigo-500/15 px-2.5 py-1 font-semibold text-indigo-300">
             {game.platform?.name ?? 'Sin plataforma'}
@@ -45,7 +50,26 @@ export default function GameCard({ game }) {
             {game.genre?.name ?? 'Sin género'}
           </span>
         </div>
-        <p className="text-2xl font-black text-emerald-400">${Number(game.price).toFixed(2)}</p>
+        
+        {/* Precio y Botón de Comprar */}
+        <div className="mt-auto pt-2 flex items-center justify-between">
+          <p className="text-2xl font-black text-emerald-400">${Number(game.price).toFixed(2)}</p>
+          
+          <button
+            onClick={(e) => {
+              e.stopPropagation() // Evita que se abra el 3D
+              if (onBuy) onBuy()
+            }}
+            disabled={outOfStock}
+            className={`px-3 py-2 rounded-xl text-sm font-bold flex items-center gap-1 transition-all ${
+              outOfStock 
+                ? 'bg-slate-800 text-slate-500 cursor-not-allowed' 
+                : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/30'
+            }`}
+          >
+            🛒 Comprar
+          </button>
+        </div>
       </div>
     </article>
   )
