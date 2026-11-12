@@ -51,9 +51,9 @@ export default function GameCard({ game, onClick, onBuy }) {
           </span>
         </div>
         
-        {/* Precio y Botón de Comprar */}
+        {/* Precio en Bolivianos y Botón de Comprar */}
         <div className="mt-auto pt-2 flex items-center justify-between">
-          <p className="text-2xl font-black text-emerald-400">${Number(game.price).toFixed(2)}</p>
+          <p className="text-2xl font-black text-emerald-400">Bs. {Number(game.price).toFixed(2)}</p>
           
           <button
             onClick={(e) => {
@@ -67,7 +67,7 @@ export default function GameCard({ game, onClick, onBuy }) {
                 : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/30'
             }`}
           >
-            🛒 Comprar
+            🎮 Comprar
           </button>
         </div>
       </div>

@@ -17,7 +17,7 @@ export default function GamesSection({ addToCart, isAdmin }) {
   const [optionsLoading, setOptionsLoading] = useState(true)
   const [optionsError, setOptionsError] = useState('')
 
-  // --- NUEVOS ESTADOS PARA LOS FILTROS ---
+  // --- ESTADOS PARA LOS FILTROS ---
   const [filtroPlataforma, setFiltroPlataforma] = useState("todas")
   const [filtroGenero, setFiltroGenero] = useState("todos")
 
@@ -69,7 +69,7 @@ export default function GamesSection({ addToCart, isAdmin }) {
     <div className="space-y-6">
       <SectionHeader title="Juegos" subtitle="Explora nuestro catálogo de videojuegos." />
       
-      {/* SI ES ADMIN: Muestra el formulario y el visor 3D lado a lado */}
+      {/* SI ES ADMIN: Formulario + 3D */}
       {isAdmin ? (
         <div className="grid gap-6 lg:grid-cols-[400px_1fr]">
           <GameForm
@@ -94,14 +94,15 @@ export default function GamesSection({ addToCart, isAdmin }) {
               <div className="bg-slate-800 p-4 rounded-xl border border-indigo-500/30 flex justify-between items-center">
                 <div>
                   <p className="text-white font-bold text-lg">{selectedGame.title}</p>
-                  <p className="text-indigo-400 font-bold">${selectedGame.price}</p>
+                  {/* PRECIO EN BOLIVIANOS */}
+                  <p className="text-indigo-400 font-bold">Bs. {selectedGame.price}</p>
                 </div>
                 <button 
                   onClick={() => addToCart(selectedGame)}
                   disabled={selectedGame.stock === 0}
                   className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-lg font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-indigo-500/20"
                 >
-                  Comprar Destacado 🛒
+                  Comprar Destacado 🎮
                 </button>
               </div>
             )}
@@ -124,7 +125,8 @@ export default function GamesSection({ addToCart, isAdmin }) {
               disabled={selectedGame?.stock === 0}
               className="bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-3 rounded-xl font-bold text-lg shadow-lg shadow-indigo-500/30 transition-all disabled:opacity-50"
             >
-              {selectedGame?.stock === 0 ? 'Agotado' : 'Comprar Ahora por $' + selectedGame?.price}
+              {/* PRECIO EN BOLIVIANOS */}
+              {selectedGame?.stock === 0 ? 'Agotado' : `Comprar Ahora por Bs. ${selectedGame?.price}`}
             </button>
           </div>
           
@@ -169,7 +171,7 @@ export default function GamesSection({ addToCart, isAdmin }) {
         </div>
       </div>
       
-      {/* LA GRILLA DE JUEGOS (Usa juegosFiltrados en lugar de games) */}
+      {/* LA GRILLA DE JUEGOS (Usa juegosFiltrados) */}
       <GameGrid 
         games={juegosFiltrados} 
         loading={gamesLoading} 
