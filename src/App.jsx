@@ -10,7 +10,7 @@ export default function App() {
   // --- ESTADOS DEL CARRITO ---
   const [isCartOpen, setIsCartOpen] = useState(false)
   const [cartItems, setCartItems] = useState([])
-  const [isProcessing, setIsProcessing] = useState(false) // NUEVO ESTADO
+  const [isProcessing, setIsProcessing] = useState(false)
 
   // --- ESTADO DEL MODO ADMIN ---
   const [isAdmin, setIsAdmin] = useState(false)
@@ -25,21 +25,41 @@ export default function App() {
     }
   }
 
-  // Función para agregar juegos
+  // 1. Agregar juego (si ya existe, suma 1 a la cantidad)
   const addToCart = (juego) => {
-    setCartItems([...cartItems, juego])
-    setIsCartOpen(true) // Se abre el carrito solito al comprar
+    const existingItem = cartItems.find(item => item.id === juego.id);
+    
+    if (existingItem) {
+      setCartItems(cartItems.map(item => 
+        item.id === juego.id ? { ...item, quantity: item.quantity + 1 } : item
+      ));
+    } else {
+      setCartItems([...cartItems, { ...juego, quantity: 1 }]);
+    }
+    setIsCartOpen(true);
   }
 
-  const removeFromCart = (index) => {
-    const newCart = [...cartItems]
-    newCart.splice(index, 1)
-    setCartItems(newCart)
+  // 2. Eliminar juego completo
+  const removeFromCart = (id) => {
+    setCartItems(cartItems.filter(item => item.id !== id));
   }
 
-  const total = cartItems.reduce((acc, item) => acc + item.price, 0)
+  // 3. Sumar o restar cantidad (+ / -)
+  const updateQuantity = (id, delta) => {
+    setCartItems(cartItems.map(item => {
+      if (item.id === id) {
+        const newQuantity = item.quantity + delta;
+        if (newQuantity <= 0) return null; // Si llega a 0, lo borra
+        return { ...item, quantity: newQuantity };
+      }
+      return item;
+    }).filter(Boolean));
+  }
 
-  // --- NUEVA FUNCIÓN DE CHECKOUT REAL ---
+  // Cálculo del total multiplicando precio por cantidad
+  const total = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0)
+
+  // --- FUNCIÓN DE CHECKOUT REAL ---
   const handleCheckout = async () => {
     if (cartItems.length === 0) return;
     setIsProcessing(true);
@@ -47,9 +67,13 @@ export default function App() {
     try {
       // Procesamos cada juego en el carrito uno por uno
       for (const item of cartItems) {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/checkout/${item.id}`, {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/checkout`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            game_id: item.id, 
+            quantity: item.quantity // <-- Enviamos la cantidad al backend
+          })
         });
         
         if (!res.ok) {
@@ -75,7 +99,7 @@ export default function App() {
     <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_rgba(79,70,229,0.18),_transparent_60%)] bg-slate-950 text-white md:flex">
       
       {/* MENÚ LATERAL */}
-      <Sidebar active={section} onChange={setSection} />
+      <Sidebar active={section} onChange={setSection} isAdmin={isAdmin} />
 
       {/* CONTENIDO PRINCIPAL */}
       <main className="mx-auto w-full max-w-7xl flex-1 p-4 md:p-8 relative">
@@ -102,7 +126,7 @@ export default function App() {
             🛒 Mi Carrito
             {cartItems.length > 0 && (
               <span className="absolute -top-2 -right-2 bg-pink-500 text-xs w-6 h-6 flex items-center justify-center rounded-full font-bold animate-pulse text-white">
-                {cartItems.length}
+                {cartItems.reduce((acc, item) => acc + item.quantity, 0)}
               </span>
             )}
           </button>
@@ -130,16 +154,21 @@ export default function App() {
               <p className="text-sm">¡Explora el catálogo y encuentra tu próximo juego!</p>
             </div>
           ) : (
-            cartItems.map((item, index) => (
-              <div key={index} className="flex justify-between items-center bg-slate-800 p-3 rounded-lg border border-slate-700">
+            cartItems.map((item) => (
+              <div key={item.id} className="flex justify-between items-center bg-slate-800 p-3 rounded-lg border border-slate-700">
                 <div className="flex items-center gap-3">
                   <img src={item.image_url} alt={item.title} className="w-12 h-16 object-cover rounded" />
                   <div>
-                    <p className="text-white font-bold text-sm">{item.title}</p>
-                    <p className="text-indigo-400 font-bold">${item.price}</p>
+                    <p className="text-white font-bold text-sm line-clamp-1">{item.title}</p>
+                    <p className="text-indigo-400 font-bold">Bs. {item.price}</p>
                   </div>
                 </div>
-                <button onClick={() => removeFromCart(index)} className="text-red-400 hover:text-red-300 p-2">🗑️</button>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => updateQuantity(item.id, -1)} className="bg-slate-700 hover:bg-slate-600 w-8 h-8 flex items-center justify-center rounded text-white font-bold">-</button>
+                  <span className="text-white font-bold w-6 text-center">{item.quantity}</span>
+                  <button onClick={() => updateQuantity(item.id, 1)} className="bg-slate-700 hover:bg-slate-600 w-8 h-8 flex items-center justify-center rounded text-white font-bold">+</button>
+                  <button onClick={() => removeFromCart(item.id)} className="text-red-400 hover:text-red-300 ml-2">🗑️</button>
+                </div>
               </div>
             ))
           )}
@@ -148,7 +177,7 @@ export default function App() {
         <div className="p-6 border-t border-slate-800 bg-slate-900/90">
           <div className="flex justify-between text-lg font-bold mb-4">
             <span className="text-slate-400">Total:</span>
-            <span className="text-green-400 text-2xl">${total.toFixed(2)}</span>
+            <span className="text-green-400 text-2xl">Bs. {total.toFixed(2)}</span>
           </div>
           
           {/* BOTÓN DE COMPRA CONECTADO AL BACKEND */}
