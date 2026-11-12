@@ -37,7 +37,11 @@ const SECTIONS = [
   },
 ]
 
-export default function Sidebar({ active, onChange }) {
+// Recibimos isAdmin
+export default function Sidebar({ active, onChange, isAdmin }) {
+  // Si no es admin, solo mostramos la sección de juegos
+  const visibleSections = isAdmin ? SECTIONS : SECTIONS.filter(s => s.id === 'games');
+
   return (
     <aside className="border-b border-indigo-500/20 bg-slate-900/80 md:sticky md:top-0 md:h-screen md:w-64 md:shrink-0 md:border-r md:border-b-0">
       <div className="flex items-center gap-3 px-6 py-5">
@@ -52,7 +56,7 @@ export default function Sidebar({ active, onChange }) {
         </div>
       </div>
       <nav className="flex gap-2 px-4 pb-4 md:flex-col">
-        {SECTIONS.map((s) => (
+        {visibleSections.map((s) => (
           <button
             key={s.id}
             onClick={() => onChange(s.id)}

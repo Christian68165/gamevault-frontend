@@ -5,7 +5,6 @@ import GameForm from './GameForm.jsx'
 import GameViewer3D from './GameViewer3D.jsx'
 import GameGrid from './GameGrid.jsx'
 
-// 1. Recibimos addToCart E isAdmin
 export default function GamesSection({ addToCart, isAdmin }) {
   const [games, setGames] = useState([])
   const [gamesLoading, setGamesLoading] = useState(true)
@@ -17,6 +16,10 @@ export default function GamesSection({ addToCart, isAdmin }) {
   const [genres, setGenres] = useState([])
   const [optionsLoading, setOptionsLoading] = useState(true)
   const [optionsError, setOptionsError] = useState('')
+
+  // --- NUEVOS ESTADOS PARA LOS FILTROS ---
+  const [filtroPlataforma, setFiltroPlataforma] = useState("todas")
+  const [filtroGenero, setFiltroGenero] = useState("todos")
 
   const loadGames = useCallback(async () => {
     setGamesLoading(true)
@@ -55,9 +58,16 @@ export default function GamesSection({ addToCart, isAdmin }) {
     loadOptions()
   }, [loadGames, loadOptions])
 
+  // --- LÓGICA DE FILTRADO ---
+  const juegosFiltrados = games.filter(juego => {
+    const matchPlataforma = filtroPlataforma === "todas" || juego.platform_id.toString() === filtroPlataforma;
+    const matchGenero = filtroGenero === "todos" || juego.genre_id.toString() === filtroGenero;
+    return matchPlataforma && matchGenero;
+  });
+
   return (
     <div className="space-y-6">
-      <SectionHeader title="Juegos" subtitle="Administra el catálogo de videojuegos de la bóveda." />
+      <SectionHeader title="Juegos" subtitle="Explora nuestro catálogo de videojuegos." />
       
       {/* SI ES ADMIN: Muestra el formulario y el visor 3D lado a lado */}
       {isAdmin ? (
@@ -98,7 +108,7 @@ export default function GamesSection({ addToCart, isAdmin }) {
           </div>
         </div>
       ) : (
-        /* SI ES CLIENTE (NO ADMIN): Muestra un banner ancho con el Juego Destacado */
+        /* SI ES CLIENTE: Banner Juego Destacado */
         <div className="relative overflow-hidden rounded-3xl bg-slate-900 border border-slate-800 p-8 flex flex-col md:flex-row items-center gap-8 shadow-2xl">
           <div className="flex-1 space-y-4 z-10">
             <span className="bg-indigo-500/20 text-indigo-300 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest">
@@ -127,10 +137,41 @@ export default function GamesSection({ addToCart, isAdmin }) {
           </div>
         </div>
       )}
+
+      {/* --- FILTROS PARA EL CLIENTE --- */}
+      <div className="flex flex-wrap gap-4 bg-slate-900 p-4 rounded-2xl border border-slate-800">
+        <div className="flex items-center gap-2">
+          <label className="text-sm font-bold text-slate-400">Plataforma:</label>
+          <select 
+            className="bg-slate-800 text-white px-4 py-2 rounded-lg border border-slate-700 focus:outline-none focus:border-indigo-500"
+            value={filtroPlataforma}
+            onChange={(e) => setFiltroPlataforma(e.target.value)}
+          >
+            <option value="todas">Todas las plataformas</option>
+            {platforms.map(p => (
+              <option key={p.id} value={p.id}>{p.name}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <label className="text-sm font-bold text-slate-400">Género:</label>
+          <select 
+            className="bg-slate-800 text-white px-4 py-2 rounded-lg border border-slate-700 focus:outline-none focus:border-indigo-500"
+            value={filtroGenero}
+            onChange={(e) => setFiltroGenero(e.target.value)}
+          >
+            <option value="todos">Todos los géneros</option>
+            {genres.map(g => (
+              <option key={g.id} value={g.id}>{g.name}</option>
+            ))}
+          </select>
+        </div>
+      </div>
       
-      {/* LA GRILLA DE JUEGOS SIEMPRE SE MUESTRA */}
+      {/* LA GRILLA DE JUEGOS (Usa juegosFiltrados en lugar de games) */}
       <GameGrid 
-        games={games} 
+        games={juegosFiltrados} 
         loading={gamesLoading} 
         error={gamesError} 
         onRetry={loadGames} 
