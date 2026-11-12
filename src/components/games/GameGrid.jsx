@@ -1,8 +1,8 @@
 import { Card, Loader, ErrorMessage, EmptyState } from '../ui.jsx'
 import GameCard from './GameCard.jsx'
 
-export default function GameGrid({ games, loading, error, onRetry, onSelectGame }) {
-  // Aseguramos que games siempre sea un arreglo para evitar errores
+// 1. Recibimos addToCart
+export default function GameGrid({ games, loading, error, onRetry, onSelectGame, addToCart }) {
   const safeGames = games || [];
 
   return (
@@ -18,10 +18,14 @@ export default function GameGrid({ games, loading, error, onRetry, onSelectGame 
           {safeGames.map((game) => (
             <div 
               key={game.id} 
-              onClick={() => onSelectGame && onSelectGame(game)} 
-              className="cursor-pointer transition-transform hover:scale-105"
+              className="transition-transform hover:scale-105"
             >
-              <GameCard game={game} />
+              {/* Le pasamos la función al GameCard */}
+              <GameCard 
+                game={game} 
+                onClick={() => onSelectGame && onSelectGame(game)} 
+                onBuy={() => addToCart && addToCart(game)} 
+              />
             </div>
           ))}
         </div>
