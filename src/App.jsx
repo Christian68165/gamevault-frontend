@@ -11,6 +11,19 @@ export default function App() {
   const [isCartOpen, setIsCartOpen] = useState(false)
   const [cartItems, setCartItems] = useState([])
 
+  // --- ESTADO DEL MODO ADMIN (NUEVO) ---
+  const [isAdmin, setIsAdmin] = useState(false)
+
+  const activarAdmin = () => {
+    const password = prompt("🔒 Ingresa la contraseña de Administrador:")
+    if (password === "admin123") {
+      setIsAdmin(true)
+      alert("✅ Modo Administrador activado. Ahora puedes agregar juegos.")
+    } else if (password !== null) {
+      alert("❌ Contraseña incorrecta")
+    }
+  }
+
   // Función para agregar juegos
   const addToCart = (juego) => {
     setCartItems([...cartItems, juego])
@@ -34,8 +47,21 @@ export default function App() {
       {/* CONTENIDO PRINCIPAL */}
       <main className="mx-auto w-full max-w-7xl flex-1 p-4 md:p-8 relative">
         
-        {/* HEADER SUPERIOR CON EL CARRITO */}
-        <header className="flex justify-end mb-6">
+        {/* HEADER SUPERIOR */}
+        <header className="flex justify-end items-center gap-4 mb-6">
+          
+          {/* BOTÓN DE ADMIN (NUEVO) */}
+          <button 
+            onClick={activarAdmin}
+            className={`px-4 py-3 rounded-xl font-bold text-sm border transition-all ${
+              isAdmin 
+                ? 'bg-emerald-600/20 border-emerald-500 text-emerald-400' 
+                : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white'
+            }`}
+          >
+            {isAdmin ? '👑 Modo Admin Activo' : '⚙️ Acceso Admin'}
+          </button>
+
           <button 
             onClick={() => setIsCartOpen(true)}
             className="relative bg-slate-800 hover:bg-slate-700 px-6 py-3 rounded-xl font-bold flex items-center gap-2 border border-slate-700 transition-all shadow-lg shadow-indigo-500/10"
@@ -49,13 +75,13 @@ export default function App() {
           </button>
         </header>
 
-        {/* SECCIONES (Le pasamos addToCart a GamesSection) */}
-        {section === 'games' && <GamesSection addToCart={addToCart} />}
+        {/* SECCIONES (Le pasamos addToCart e isAdmin) */}
+        {section === 'games' && <GamesSection addToCart={addToCart} isAdmin={isAdmin} />}
         {section === 'platforms' && <PlatformsSection />}
         {section === 'genres' && <GenresSection />}
       </main>
 
-      {/* ================= PANEL LATERAL DEL CARRITO (DRAWER) ================= */}
+      {/* ================= PANEL LATERAL DEL CARRITO ================= */}
       <div className={`fixed top-0 right-0 h-full w-full md:w-96 bg-slate-900 border-l border-slate-700 shadow-2xl transform transition-transform duration-300 z-50 flex flex-col ${isCartOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         
         <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-900">

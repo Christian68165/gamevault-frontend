@@ -5,8 +5,8 @@ import GameForm from './GameForm.jsx'
 import GameViewer3D from './GameViewer3D.jsx'
 import GameGrid from './GameGrid.jsx'
 
-// 1. Recibimos la prop addToCart desde App.jsx
-export default function GamesSection({ addToCart }) {
+// 1. Recibimos addToCart E isAdmin
+export default function GamesSection({ addToCart, isAdmin }) {
   const [games, setGames] = useState([])
   const [gamesLoading, setGamesLoading] = useState(true)
   const [gamesError, setGamesError] = useState('')
@@ -59,47 +59,76 @@ export default function GamesSection({ addToCart }) {
     <div className="space-y-6">
       <SectionHeader title="Juegos" subtitle="Administra el catálogo de videojuegos de la bóveda." />
       
-      <div className="grid gap-6 lg:grid-cols-[400px_1fr]">
-        {/* FORMULARIO (Lo ocultaremos luego con el Modo Admin) */}
-        <GameForm
-          platforms={platforms}
-          genres={genres}
-          optionsLoading={optionsLoading}
-          optionsError={optionsError}
-          onRetryOptions={loadOptions}
-          onCreated={loadGames}
-        />
-        
-        {/* VISOR 3D y BOTÓN DE COMPRAR DESTACADO */}
-        <div className="flex flex-col gap-4">
-          {selectedGame?.image_url ? (
-            <GameViewer3D coverUrl={selectedGame.image_url} />
-          ) : (
-            <div className="flex items-center justify-center h-72 bg-slate-900 rounded-xl text-slate-400 border border-slate-700">
-              Selecciona un juego con imagen para ver el visor 3D
-            </div>
-          )}
+      {/* SI ES ADMIN: Muestra el formulario y el visor 3D lado a lado */}
+      {isAdmin ? (
+        <div className="grid gap-6 lg:grid-cols-[400px_1fr]">
+          <GameForm
+            platforms={platforms}
+            genres={genres}
+            optionsLoading={optionsLoading}
+            optionsError={optionsError}
+            onRetryOptions={loadOptions}
+            onCreated={loadGames}
+          />
           
-          {/* Botón para comprar el juego que está en el visor 3D */}
-          {selectedGame && (
-            <div className="bg-slate-800 p-4 rounded-xl border border-indigo-500/30 flex justify-between items-center">
-              <div>
-                <p className="text-white font-bold text-lg">{selectedGame.title}</p>
-                <p className="text-indigo-400 font-bold">${selectedGame.price}</p>
+          <div className="flex flex-col gap-4">
+            {selectedGame?.image_url ? (
+              <GameViewer3D coverUrl={selectedGame.image_url} />
+            ) : (
+              <div className="flex items-center justify-center h-72 bg-slate-900 rounded-xl text-slate-400 border border-slate-700">
+                Selecciona un juego con imagen para ver el visor 3D
               </div>
-              <button 
-                onClick={() => addToCart(selectedGame)}
-                disabled={selectedGame.stock === 0}
-                className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-lg font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-indigo-500/20"
-              >
-                Comprar Destacado 🛒
-              </button>
-            </div>
-          )}
+            )}
+            
+            {selectedGame && (
+              <div className="bg-slate-800 p-4 rounded-xl border border-indigo-500/30 flex justify-between items-center">
+                <div>
+                  <p className="text-white font-bold text-lg">{selectedGame.title}</p>
+                  <p className="text-indigo-400 font-bold">${selectedGame.price}</p>
+                </div>
+                <button 
+                  onClick={() => addToCart(selectedGame)}
+                  disabled={selectedGame.stock === 0}
+                  className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-lg font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-indigo-500/20"
+                >
+                  Comprar Destacado 🛒
+                </button>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      ) : (
+        /* SI ES CLIENTE (NO ADMIN): Muestra un banner ancho con el Juego Destacado */
+        <div className="relative overflow-hidden rounded-3xl bg-slate-900 border border-slate-800 p-8 flex flex-col md:flex-row items-center gap-8 shadow-2xl">
+          <div className="flex-1 space-y-4 z-10">
+            <span className="bg-indigo-500/20 text-indigo-300 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest">
+              Juego Destacado
+            </span>
+            <h2 className="text-4xl font-black text-white">{selectedGame?.title || 'Cargando...'}</h2>
+            <p className="text-slate-400 text-lg">
+              Explora este título en 3D y llévatelo al mejor precio. 
+              Plataforma: {selectedGame?.platform?.name} | Género: {selectedGame?.genre?.name}
+            </p>
+            <button 
+              onClick={() => addToCart(selectedGame)}
+              disabled={selectedGame?.stock === 0}
+              className="bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-3 rounded-xl font-bold text-lg shadow-lg shadow-indigo-500/30 transition-all disabled:opacity-50"
+            >
+              {selectedGame?.stock === 0 ? 'Agotado' : 'Comprar Ahora por $' + selectedGame?.price}
+            </button>
+          </div>
+          
+          <div className="w-full md:w-1/2 h-80 relative">
+            {selectedGame?.image_url ? (
+              <GameViewer3D coverUrl={selectedGame.image_url} />
+            ) : (
+              <div className="flex items-center justify-center h-full bg-slate-800 rounded-xl text-slate-500">Sin portada 3D</div>
+            )}
+          </div>
+        </div>
+      )}
       
-      {/* GRILLA DE JUEGOS (Le pasamos addToCart) */}
+      {/* LA GRILLA DE JUEGOS SIEMPRE SE MUESTRA */}
       <GameGrid 
         games={games} 
         loading={gamesLoading} 
